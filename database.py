@@ -1,7 +1,7 @@
 import sqlite3
 
 
-class SQLighter:
+class BotDB:
     def __init__(self, database):
         """Подключние к БД и сохранение курсора соединения"""
         self.connection = sqlite3.connect(database, check_same_thread=False)
@@ -11,8 +11,8 @@ class SQLighter:
             self.cursor.execute(
                 "CREATE TABLE IF NOT EXISTS sofas ("
                 "id integer PRIMARY KEY, "
-                "name integer NOT NULL, "
-                "price text NOT NULL, "
+                "name text NOT NULL, "
+                "price integer NOT NULL, "
                 "image blob NOT NULL);"
             )
 
@@ -26,14 +26,19 @@ class SQLighter:
         """Диван по ID"""
         with self.connection:
             return self.cursor.execute(
-                "SELECT * FROM `sub` WHERE `status` = ?", (id_sofa,)).fetchone()
+                "SELECT * FROM `sofas` WHERE `id` = ?", (id_sofa,)).fetchone()
 
     def all_sofa(self):
         """Получение списка диванов"""
         with self.connection:
             return self.cursor.execute("SELECT * FROM `sofas`").fetchall()
 
-    def count_sofa(self):
+    def count_sofa(self) -> int:
         """Количество диванов в базе данных"""
         with self.connection:
-            return self.cursor.execute("SELECT Count(*) FROM `sofas`")
+            return self.cursor.execute("SELECT Count(*) FROM `sofas`").fetchone()[0]
+
+
+if __name__ == '__main__':
+    db = BotDB(":memory:")
+
