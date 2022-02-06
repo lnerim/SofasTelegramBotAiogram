@@ -12,7 +12,6 @@ def keyboard_sofa(back_id, next_id, price):
     keyboard = InlineKeyboardMarkup()
     keyboard.insert(url)
     keyboard.row(*line)
-    print(keyboard)
     return keyboard
 
 
