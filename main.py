@@ -12,13 +12,21 @@ bot = Bot(token=getenv("TOKEN_TG"))
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 bot_db = BotDB("bot.sqlite3")
+admin = int(getenv("ID_ADMIN"))
 
 
 @dp.message_handler(commands=["start", "help"])
 async def cmd_start(message: types.Message):
     await message.answer(
         f"Привет, {message.chat.first_name}!\n"
-        f"Хочешь купить диван? Тебе к нам!", reply_markup=keyboard_catalog())
+        f"Хочешь купить диван? Тебе к нам!\n",
+        reply_markup=keyboard_catalog())
+
+
+@dp.message_handler(commands=["location"])
+async def cmd_location(message: types.Message):
+    await message.answer("Мы находимся здесь ⤵")
+    await bot.send_location(message.chat.id, 55.755696, 37.617306)  # Москва
 
 
 @dp.callback_query_handler()
@@ -49,7 +57,7 @@ class Form(StatesGroup):
     image = State()
 
 
-@dp.message_handler(commands=["new_sofa"])
+@dp.message_handler(lambda message: message.chat.id == admin, commands=["new_sofa"])
 async def cmd_new_sofa(message: types.Message):
     await Form.name.set()
     await message.answer("Введите имя дивана.")
