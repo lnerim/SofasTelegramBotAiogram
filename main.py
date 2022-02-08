@@ -12,14 +12,16 @@ bot = Bot(token=getenv("TOKEN_TG"))
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 bot_db = BotDB("bot.sqlite3")
-admin = int(getenv("ID_ADMIN"))
+admins = [int(getenv("ID_ADMIN"))]
 
 
 @dp.message_handler(commands=["start", "help"])
 async def cmd_start(message: types.Message):
+    await message.answer_sticker("CAACAgIAAxkBAAIDIGIBeUKI5I4VBdKGiNlbJzMuOF_qAALGAQACFkJrCkoj1PTJ23lHIwQ", )
     await message.answer(
         f"Привет, {message.chat.first_name}!\n"
-        f"Хочешь купить диван? Тебе к нам!\n",
+        f"У нас вы можете найти именно то, что вам нужно!"
+        f"Купить диван? Тебе к нам!\n",
         reply_markup=keyboard_catalog())
 
 
@@ -57,10 +59,10 @@ class Form(StatesGroup):
     image = State()
 
 
-@dp.message_handler(lambda message: message.chat.id == admin, commands=["new_sofa"])
+@dp.message_handler(lambda message: message.chat.id in admins, commands=["new_sofa"])
 async def cmd_new_sofa(message: types.Message):
     await Form.name.set()
-    await message.answer("Введите имя дивана.")
+    await message.answer("Введите имя дивана.\nОтмена - /cancel")
 
 
 @dp.message_handler(state='*', commands='cancel')
@@ -73,29 +75,29 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=Form.name)
-async def process_name(message: types.Message, state: FSMContext):
+async def set_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
     await Form.next()
-    await message.answer("Отлично! Укажите его цену.")
+    await message.answer("Отлично! Укажите его цену.\nОтмена - /cancel")
 
 
 @dp.message_handler(state=Form.price)
-async def process_age(message: types.Message, state: FSMContext):
+async def set_price(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         await Form.next()
         await state.update_data(price=int(message.text))
-        await message.reply("Хорошо, теперь картинку этого дивана.")
+        await message.reply("Хорошо, теперь картинку этого дивана.\nОтмена - /cancel")
     else:
-        await message.reply("Неверно! Укажите число!")
+        await message.reply("Неверно! Укажите число!\nОтмена - /cancel")
 
 
 @dp.message_handler(state=Form.image)
-async def process_gender_invalid(message: types.Message):
-    await message.reply("Принимаются только картинки!")
+async def set_image_error(message: types.Message):
+    await message.reply("Принимаются только картинки!\nОтмена - /cancel")
 
 
 @dp.message_handler(state=Form.image, content_types=["photo"])
-async def process_gender(message: types.Message, state: FSMContext):
+async def set_image(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         my_file_id = message.photo[-1].file_id
         my_file = await bot.download_file_by_id(file_id=my_file_id)
@@ -107,7 +109,7 @@ async def process_gender(message: types.Message, state: FSMContext):
 @dp.message_handler()
 async def echo(message: types.Message):
     if message.text[:1] == "/":
-        return await message.answer("Ой, такой команды нет!")
+        return await message.answer("Ой, такой команды нет!\nСписок команд - /help")
     await message.answer("Я не понимаю тебя...\nТебе поможет - /help")
 
 

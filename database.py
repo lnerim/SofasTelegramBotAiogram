@@ -22,23 +22,29 @@ class BotDB:
             return self.cursor.execute(
                 "INSERT INTO `sofas` (`name`, `price`, `image`) VALUES(?,?,?)", (name, price, image))
 
-    def get_sofa(self, id_sofa):
+    def get_sofa(self, id_sofa) -> list:
         """Диван по ID"""
         with self.connection:
             return self.cursor.execute(
                 "SELECT * FROM `sofas` WHERE `id` = ?", (id_sofa,)).fetchone()
 
-    def all_sofa(self):
-        """Получение списка диванов"""
+    def all_id_sofa(self):
+        """Получение списка id диванов"""
         with self.connection:
-            return self.cursor.execute("SELECT * FROM `sofas`").fetchall()
+            return self.cursor.execute("SELECT id FROM `sofas`").fetchall()
 
     def count_sofa(self) -> int:
         """Количество диванов в базе данных"""
         with self.connection:
             return self.cursor.execute("SELECT Count(*) FROM `sofas`").fetchone()[0]
 
+    def delete_sofa(self, id_sofa):
+        with self.connection:
+            return self.cursor.execute("DELETE FROM `sofas` WHERE `id`= ?", (id_sofa,))
+
 
 if __name__ == '__main__':
-    db = BotDB(":memory:")
+    db = BotDB("bot.sqlite3")
+    var = db.all_id_sofa()
+    print(var)
 
