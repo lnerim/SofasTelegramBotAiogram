@@ -28,10 +28,11 @@ class BotDB:
             return self.cursor.execute(
                 "SELECT * FROM `sofas` WHERE `id` = ?", (id_sofa,)).fetchone()
 
-    def all_id_sofa(self):
+    def all_id_sofa(self) -> list:
         """Получение списка id диванов"""
         with self.connection:
-            return self.cursor.execute("SELECT id FROM `sofas`").fetchall()
+            data = self.cursor.execute("SELECT id FROM `sofas`").fetchall()
+            return [id_sofa[0] for id_sofa in data]
 
     def count_sofa(self) -> int:
         """Количество диванов в базе данных"""
@@ -44,7 +45,4 @@ class BotDB:
 
 
 if __name__ == '__main__':
-    db = BotDB("bot.sqlite3")
-    var = db.all_id_sofa()
-    print(var)
-
+    db = BotDB(":memory:")

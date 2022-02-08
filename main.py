@@ -1,3 +1,4 @@
+import asyncio
 from os import getenv
 
 from aiogram import Bot, Dispatcher, executor, types
@@ -17,12 +18,19 @@ admins = [int(getenv("ID_ADMIN"))]
 
 @dp.message_handler(commands=["start", "help"])
 async def cmd_start(message: types.Message):
-    await message.answer_sticker("CAACAgIAAxkBAAIDIGIBeUKI5I4VBdKGiNlbJzMuOF_qAALGAQACFkJrCkoj1PTJ23lHIwQ", )
+    await bot.set_my_commands([
+        types.BotCommand("start", "Старт бота"),
+        types.BotCommand("location", "Наше местоположение"),
+    ])
+
+    sticker = await message.answer_sticker("CAACAgIAAxkBAAIDIGIBeUKI5I4VBdKGiNlbJzMuOF_qAALGAQACFkJrCkoj1PTJ23lHIwQ")
     await message.answer(
         f"Привет, {message.chat.first_name}!\n"
         f"У нас вы можете найти именно то, что вам нужно!"
         f"Купить диван? Тебе к нам!\n",
-        reply_markup=keyboard_catalog())
+        reply_markup=keyboard_catalog(bot_db.all_id_sofa()))
+    await asyncio.sleep(3)
+    await bot.delete_message(message.chat.id, sticker.message_id)
 
 
 @dp.message_handler(commands=["location"])
@@ -36,17 +44,18 @@ async def callback_sofa(callback_query: types.CallbackQuery):
     sofa = bot_db.get_sofa(callback_query.data)
     if sofa is not None:
         id_sofa, name, price, picture = sofa
+        all_id_sofa = bot_db.all_id_sofa()
+        index = all_id_sofa.index(id_sofa)
+
+        back_id = None if index - 1 < 0 else all_id_sofa[index - 1]
+        next_id = None if index >= len(all_id_sofa)-1 else all_id_sofa[index + 1]
 
         await callback_query.message.delete()
         await bot.send_photo(
             chat_id=callback_query.message.chat.id,
             photo=picture,
             caption=name,
-            reply_markup=keyboard_sofa(
-                back_id=None if not bot_db.get_sofa(id_sofa - 1) else id_sofa - 1,  # Если диванов с крайними к нему
-                next_id=None if not bot_db.get_sofa(id_sofa + 1) else id_sofa + 1,  # индексами нет, то кнопка убирается
-                price=price
-            )
+            reply_markup=keyboard_sofa(back_id, next_id, price)
         )
     else:
         await callback_query.answer(text=f"Дивана с таким индексом нет -> {callback_query.data}", show_alert=True)

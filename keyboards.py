@@ -15,7 +15,8 @@ def keyboard_sofa(back_id, next_id, price):
     return keyboard
 
 
-def keyboard_catalog():
+def keyboard_catalog(_list: list):
+    first_sofa = str(_list[0])
     return InlineKeyboardMarkup().add(
-        InlineKeyboardButton("К каталогу диванов!!!", callback_data="1")  # Номер дивана (нумерация с 1)
+        InlineKeyboardButton("К каталогу диванов!!!", callback_data=first_sofa)
     )
