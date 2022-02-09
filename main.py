@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.utils.exceptions import MessageTextIsEmpty
 
 from database import BotDB
 from keyboards import *
@@ -113,6 +114,20 @@ async def set_image(message: types.Message, state: FSMContext):
         bot_db.new_sofa(**data, image=my_file.read())
         await message.answer("Успешно создано!")
     await state.finish()
+
+
+@dp.message_handler(commands=["delete"])
+async def cmd_delete(message: types.message):
+    try:
+        id_sofa = message.get_args()
+        id_sofa = int(id_sofa)
+        if bot_db.get_sofa(id_sofa):
+            bot_db.delete_sofa(id_sofa)
+            await message.answer("Диван удалён!")
+        else:
+            await message.reply("Такого дивана нет!")
+    except (MessageTextIsEmpty,  ValueError):
+        await message.reply("Укажите id: /delete <id: int>")
 
 
 @dp.message_handler()
