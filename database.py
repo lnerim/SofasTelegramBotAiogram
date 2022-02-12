@@ -3,7 +3,7 @@ import sqlite3
 
 class BotDB:
     def __init__(self, database):
-        """Подключние к БД и сохранение курсора соединения"""
+        """Подключение к БД и сохранение курсора соединения"""
         self.connection = sqlite3.connect(database, check_same_thread=False)
         self.cursor = self.connection.cursor()
 
@@ -35,14 +35,10 @@ class BotDB:
             return [id_sofa[0] for id_sofa in data]
 
     def count_sofa(self) -> int:
-        """Количество диванов в базе данных"""
+        """Количество диванов в БД"""
         with self.connection:
             return self.cursor.execute("SELECT Count(*) FROM `sofas`").fetchone()[0]
 
     def delete_sofa(self, id_sofa):
         with self.connection:
             return self.cursor.execute("DELETE FROM `sofas` WHERE `id`= ?", (id_sofa,))
-
-
-if __name__ == '__main__':
-    db = BotDB(":memory:")

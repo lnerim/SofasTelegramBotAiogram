@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import sleep
 from os import getenv
 
 from aiogram import Bot, Dispatcher, executor, types
@@ -27,10 +27,11 @@ async def cmd_start(message: types.Message):
     sticker = await message.answer_sticker("CAACAgIAAxkBAAIDIGIBeUKI5I4VBdKGiNlbJzMuOF_qAALGAQACFkJrCkoj1PTJ23lHIwQ")
     await message.answer(
         f"Привет, {message.chat.first_name}!\n"
-        f"У нас вы можете найти именно то, что вам нужно!"
+        f"Мы представляем компанию по продаже диванов!\n"
+        f"Вы можете выбрать любой диван и заказать его в один клик!\n"
         f"Купить диван? Тебе к нам!\n",
         reply_markup=keyboard_catalog(bot_db.all_id_sofa()))
-    await asyncio.sleep(3)
+    await sleep(3)
     await bot.delete_message(message.chat.id, sticker.message_id)
 
 
@@ -69,12 +70,14 @@ class Form(StatesGroup):
     image = State()
 
 
+# Admin command
 @dp.message_handler(lambda message: message.chat.id in admins, commands=["new_sofa"])
 async def cmd_new_sofa(message: types.Message):
     await Form.name.set()
     await message.answer("Введите имя дивана.\nОтмена - /cancel")
 
 
+# Выход из машины состояний
 @dp.message_handler(state='*', commands='cancel')
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
@@ -116,7 +119,8 @@ async def set_image(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@dp.message_handler(commands=["delete"])
+# Admin command
+@dp.message_handler(lambda message: message.chat.id in admins, commands=["delete"])
 async def cmd_delete(message: types.message):
     try:
         id_sofa = message.get_args()
@@ -126,7 +130,7 @@ async def cmd_delete(message: types.message):
             await message.answer("Диван удалён!")
         else:
             await message.reply("Такого дивана нет!")
-    except (MessageTextIsEmpty,  ValueError):
+    except (MessageTextIsEmpty,  ValueError):  # Пустое сообщение, либо не число
         await message.reply("Укажите id: /delete <id: int>")
 
 
